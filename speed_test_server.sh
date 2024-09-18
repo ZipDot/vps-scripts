@@ -34,6 +34,30 @@ show_progress() {
     echo
 }
 
+# 清理函数
+cleanup() {
+    echo -e "\n${RED}正在停止HTTP服务...${NC}"
+    kill $SERVER_PID 2>/dev/null
+    wait $SERVER_PID 2>/dev/null
+    echo -e "${GREEN}已停止HTTP服务${NC}"
+    print_divider
+    
+    echo -e "${YELLOW}是否删除测速文件 ${FILE_NAME}? [Y/n] ${NC}"
+    read -t 10 -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+        echo -e "${BLUE}保留测速文件。${NC}"
+    else
+        rm -f $FILE_NAME
+        echo -e "${GREEN}测速文件已删除。${NC}"
+    fi
+    print_divider
+    exit 0
+}
+
+# 设置 trap 以捕获 Ctrl+C 和其他终止信号
+trap cleanup SIGINT SIGTERM
+
 print_divider
 echo -e "${BLUE}开始创建测速脚本...${NC}"
 print_divider
@@ -68,28 +92,5 @@ echo -e "${YELLOW}脚本执行完毕。使用 Ctrl+C 停止HTTP服务。${NC}"
 
 print_divider
 
-# 清理函数
-cleanup() {
-    echo -e "${RED}正在停止HTTP服务...${NC}"
-    kill $SERVER_PID
-    echo -e "${GREEN}已停止HTTP服务${NC}"
-    print_divider
-    
-    echo -e "${YELLOW}是否删除测速文件 ${FILE_NAME}? [Y/n] ${NC}"
-    read -t 10 -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
-        echo -e "${BLUE}保留测速文件。${NC}"
-    else
-        rm -f $FILE_NAME
-        echo -e "${GREEN}测速文件已删除。${NC}"
-    fi
-    print_divider
-    exit
-}
-
-# 设置 trap 以捕获 Ctrl+C
-trap cleanup INT
-
-# 等待用户中断
-wait
+# 等待 HTTP 服务结束（这会一直运行，直到收到中断信号）
+wait $SERVER_PID
