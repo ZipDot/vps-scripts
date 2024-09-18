@@ -17,25 +17,6 @@ print_divider() {
     printf '%*s\n' "70" '' | tr ' ' -
 }
 
-# 动态进度条函数
-show_progress() {
-    local pid=$1
-    local duration=$2
-    local bar_size=40
-    local elapsed=0
-
-    while [ -e /proc/$pid ]; do
-        elapsed=$((elapsed + 1))
-        local progress=$((elapsed * 100 / duration))
-        [ $progress -gt 100 ] && progress=100
-        local filled=$((progress * bar_size / 100))
-        local empty=$((bar_size - filled))
-        printf "\r[${YELLOW}%-${filled}s${NC}${RED}%-${empty}s${NC}] ${BLUE}%3d%%${NC}" '' '' $progress
-        sleep 1
-    done
-    echo
-}
-
 # 清理函数
 cleanup() {
     echo -e "\n${RED}正在停止HTTP服务...${NC}"
@@ -66,10 +47,7 @@ print_divider
 
 # 步骤1: 生成测速文件
 echo -e "${YELLOW}正在生成 ${FILE_SIZE} 大小的测速文件...${NC}"
-dd if=/dev/zero of=$FILE_NAME bs=1M count=5120 status=none &
-DD_PID=$!
-show_progress $DD_PID 30  # 假设文件生成大约需要30秒
-wait $DD_PID
+dd if=/dev/zero of=$FILE_NAME bs=1M count=5120 status=progress
 echo -e "${GREEN}测速文件生成完成。${NC}"
 
 print_divider
@@ -85,12 +63,12 @@ print_divider
 # 步骤3: 生成下载链接
 IP=$(hostname -I | awk '{print $1}')
 DOWNLOAD_LINK="http://$IP:$PORT/$FILE_NAME"
-echo -e "${GREEN}测速文件下载链接已生成:${NC}"
+echo -e "${GREEN}测速文件下载链接已生成，在浏览器中打开下方链接:${NC}"
 echo -e "${BLUE}$DOWNLOAD_LINK${NC}"
 
 print_divider
 
-echo -e "${YELLOW}脚本执行完毕。使用 Ctrl+C 停止HTTP服务。${NC}"
+echo -e "${YELLOW}使用 Ctrl+C 停止HTTP服务。${NC}"
 
 print_divider
 
