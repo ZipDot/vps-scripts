@@ -14,22 +14,24 @@ PORT=8000
 
 # 分割线函数
 print_divider() {
-    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+    printf '%*s\n' "70" '' | tr ' ' -
 }
 
-# 进度条函数
+# 动态进度条函数
 show_progress() {
-    local duration=$1
-    local sleep_interval=0.1
-    local progress=0
+    local pid=$1
+    local duration=$2
     local bar_size=40
+    local elapsed=0
 
-    while [ $progress -lt 100 ]; do
-        local filled=$(($progress * $bar_size / 100))
-        local empty=$(($bar_size - $filled))
-        printf "\r[${YELLOW}%-${filled}s${NC}${RED}%-${empty}s${NC}] ${BLUE}%d%%${NC}" '' '' $progress
-        progress=$((progress + 1))
-        sleep $sleep_interval
+    while [ -e /proc/$pid ]; do
+        elapsed=$((elapsed + 1))
+        local progress=$((elapsed * 100 / duration))
+        [ $progress -gt 100 ] && progress=100
+        local filled=$((progress * bar_size / 100))
+        local empty=$((bar_size - filled))
+        printf "\r[${YELLOW}%-${filled}s${NC}${RED}%-${empty}s${NC}] ${BLUE}%3d%%${NC}" '' '' $progress
+        sleep 1
     done
     echo
 }
@@ -66,7 +68,7 @@ print_divider
 echo -e "${YELLOW}正在生成 ${FILE_SIZE} 大小的测速文件...${NC}"
 dd if=/dev/zero of=$FILE_NAME bs=1M count=5120 status=none &
 DD_PID=$!
-show_progress 10  # 假设文件生成大约需要10秒
+show_progress $DD_PID 30  # 假设文件生成大约需要30秒
 wait $DD_PID
 echo -e "${GREEN}测速文件生成完成。${NC}"
 
