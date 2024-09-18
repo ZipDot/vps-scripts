@@ -64,10 +64,32 @@ echo -e "${BLUE}$DOWNLOAD_LINK${NC}"
 
 print_divider
 
-echo -e "${YELLOW}脚本执行完毕。测试完成可使用 Ctrl+C 停止HTTP服务。${NC}"
+echo -e "${YELLOW}脚本执行完毕。使用 Ctrl+C 停止HTTP服务。${NC}"
 
 print_divider
 
+# 清理函数
+cleanup() {
+    echo -e "${RED}正在停止HTTP服务...${NC}"
+    kill $SERVER_PID
+    echo -e "${GREEN}已停止HTTP服务${NC}"
+    print_divider
+    
+    echo -e "${YELLOW}是否删除测速文件 ${FILE_NAME}? [Y/n] ${NC}"
+    read -t 10 -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+        echo -e "${BLUE}保留测速文件。${NC}"
+    else
+        rm -f $FILE_NAME
+        echo -e "${GREEN}测速文件已删除。${NC}"
+    fi
+    print_divider
+    exit
+}
+
+# 设置 trap 以捕获 Ctrl+C
+trap cleanup INT
+
 # 等待用户中断
-trap "echo -e '${RED}正在停止HTTP服务...${NC}'; kill $SERVER_PID; echo -e '${GREEN}已停止HTTP服务${NC}'; print_divider; exit" INT
 wait
