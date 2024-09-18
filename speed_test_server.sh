@@ -83,7 +83,7 @@ cleanup() {
     echo -e "${GREEN}已停止HTTP服务${NC}"
     print_divider
     
-    echo -e "${YELLOW}是否删除测速文件 ${FILE_NAME}? [Y/n] ${NC}"
+    echo -e "${YELLOW}是否删除测速文件 ${FILE_NAME}? [Y/n](回车默认删除) ${NC}"
     read -t 10 -n 1 -r
     echo
     if [[ $REPLY =~ ^[Nn]$ ]]; then
